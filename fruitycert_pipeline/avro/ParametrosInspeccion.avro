@@ -1,0 +1,62 @@
+{
+  "schema": {
+    "type": "record",
+    "name": "MyRecord",
+    "fields": [
+      {
+        "name": "exotifruit",
+        "type": "string"
+      },
+      {
+        "name": "AVE2",
+        "type": "string"
+      },
+      {
+        "name": "BLUEBERR",
+        "type": "string"
+      },
+      {
+        "name": "4",
+        "type": "string"
+      },
+      {
+        "name": "AAAA",
+        "type": "string"
+      },
+      {
+        "name": "Pallet Nro",
+        "type": "string"
+      },
+      {
+        "name": "false",
+        "type": "string"
+      },
+      {
+        "name": "Identificacion",
+        "type": "string"
+      }
+    ]
+  },
+  "data": [
+    {
+      "4": "5",
+      "exotifruit": "exotifruit",
+      "AVE2": "AVE2",
+      "BLUEBERR": "BLUEBERR",
+      "AAAA": "AAAA",
+      "Pallet Nro": "Cajas/Pallet",
+      "false": "false",
+      "Identificacion": "Identificacion"
+    },
+    {
+      "4": "6",
+      "exotifruit": "exotifruit",
+      "AVE2": "AVE2",
+      "BLUEBERR": "BLUEBERR",
+      "AAAA": "AAAA",
+      "Pallet Nro": "Peso Neto Caja",
+      "false": "false",
+      "Identificacion": "Identificacion"
+    }
+  ]
+}
