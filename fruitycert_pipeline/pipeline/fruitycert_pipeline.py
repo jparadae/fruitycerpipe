@@ -70,7 +70,7 @@ class WriteToPostgres(beam.DoFn):
     def finish_bundle(self):
         self.conn.close()
 
-# Pipeline principal
+# Pipeline principal que inserta datos como output en PostgreSQL
 def run_pipeline(avro_files, db_config):
     pipeline_options = PipelineOptions()
 

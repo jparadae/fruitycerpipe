@@ -1,0 +1,3 @@
+CodigoParametroInspeccion,ValorParametro,z_score,estado
+201,5.5,3.5,OUTLIER
+202,9.0,2.1,NORMAL
