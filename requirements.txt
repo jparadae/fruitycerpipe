@@ -1,0 +1,5 @@
+apache-beam
+boto3
+pandas
+fastavro
+psycopg2-binary
