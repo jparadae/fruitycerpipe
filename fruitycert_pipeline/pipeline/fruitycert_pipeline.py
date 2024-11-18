@@ -1,34 +1,54 @@
 import apache_beam as beam
 from apache_beam.options.pipeline_options import PipelineOptions
-import psycopg2
-import csv
+import boto3
+import pandas as pd
+import fastavro
+import os
+from io import BytesIO
 
-class CleanCustomerAttributes(beam.DoFn):
+# Configuración de S3
+S3_BUCKET = 'prueba-fruitycert'
+S3_FILES = {
+    'AtributosCliente': 'AtributosCliente.csv',
+    'TablonInspecciones': 'TablonInspecciones.csv',
+    'ParametrosInspeccion': 'ParametrosInspeccion.csv',
+    'AtributosLotes': 'AtributosLotes.csv'
+}
+AVRO_OUTPUT_DIR = '../avro'
+
+# Descarga archivos desde S3
+def download_from_s3():
+    s3 = boto3.client('s3', region_name='us-east-1')
+    if not os.path.exists(AVRO_OUTPUT_DIR):
+        os.makedirs(AVRO_OUTPUT_DIR)
+    
+    downloaded_files = {}
+    for key, file_name in S3_FILES.items():
+        file_path = os.path.join(AVRO_OUTPUT_DIR, f"{key}.avro")
+        response = s3.get_object(Bucket=S3_BUCKET, Key=file_name)
+        data = pd.read_csv(BytesIO(response['Body'].read()))
+        schema = {
+            "doc": f"Schema for {key}",
+            "name": key,
+            "namespace": "fruitycert",
+            "type": "record",
+            "fields": [{"name": col, "type": ["null", "string"]} for col in data.columns]
+        }
+        with open(file_path, 'wb') as out:
+            fastavro.writer(out, schema, data.to_dict('records'))
+        downloaded_files[key] = file_path
+        print(f"Archivo {key} descargado y convertido a Avro en {file_path}")
+    
+    return downloaded_files
+
+# Limpieza de datos
+class CleanData(beam.DoFn):
     def process(self, element):
-        # Limpieza para AtributosCliente.csv
+        # Manejo de valores nulos y tipos de datos
         element = {k: (v if v != "" else None) for k, v in element.items()}
         yield element
 
-class CleanInspectionData(beam.DoFn):
-    def process(self, element):
-        # Limpieza para TablonInspecciones.csv
-        element = {k: (v if v != "" else None) for k, v in element.items()}
-        if "inspection_date" in element:
-            element["inspection_date"] = element["inspection_date"][:10]  # Formato YYYY-MM-DD
-        yield element
-
-class CleanParameterData(beam.DoFn):
-    def process(self, element):
-        # Limpieza para ParametrosInspeccion.csv
-        element = {k: (v if v != "" else None) for k, v in element.items()}
-        yield element
-
-class CleanLotData(beam.DoFn):
-    def process(self, element):
-        # Limpieza para AtributosLotes.csv
-        element = {k: (v if v != "" else None) for k, v in element.items()}
-        yield element
-
+# Escribe en PostgreSQL
 class WriteToPostgres(beam.DoFn):
     def __init__(self, db_config, table_name, insert_query):
         self.db_config = db_config
@@ -36,6 +56,7 @@ class WriteToPostgres(beam.DoFn):
         self.insert_query = insert_query
 
     def start_bundle(self):
+        import psycopg2
         self.conn = psycopg2.connect(**self.db_config)
         self.cursor = self.conn.cursor()
 
@@ -49,99 +70,32 @@ class WriteToPostgres(beam.DoFn):
     def finish_bundle(self):
         self.conn.close()
 
-
-def run_pipeline(input_paths, db_config):
+# Pipeline principal
+def run_pipeline(avro_files, db_config):
     pipeline_options = PipelineOptions()
 
     with beam.Pipeline(options=pipeline_options) as p:
-        # AtributosCliente.csv
-        customer_attributes = (
-            p
-            | 'Read CustomerAttributes' >> beam.io.ReadFromText(input_paths['AtributosCliente'], skip_header_lines=1)
-            | 'Parse CustomerAttributes' >> beam.Map(lambda line: dict(zip(
-                ["customer_id", "analysis1", "analysis2", "analysis3", "analysis4", "analysis5"],
-                csv.reader([line]).__next__()
-            )))
-            | 'Clean CustomerAttributes' >> beam.ParDo(CleanCustomerAttributes())
-            | 'Write CustomerAttributes to PostgreSQL' >> beam.ParDo(WriteToPostgres(
-                db_config,
-                'CustomerAttributes',
-                """
-                INSERT INTO CustomerAttributes (customer_id, analysis1, analysis2, analysis3, analysis4, analysis5)
-                VALUES (%s, %s, %s, %s, %s, %s)
-                ON CONFLICT DO NOTHING
-                """
-            ))
-        )
+        for table_name, avro_path in avro_files.items():
+            (
+                p
+                | f'Read {table_name}' >> beam.io.ReadFromAvro(avro_path)
+                | f'Clean {table_name}' >> beam.ParDo(CleanData())
+                | f'Write {table_name} to PostgreSQL' >> beam.ParDo(WriteToPostgres(
+                    db_config,
+                    table_name,
+                    f"""
+                    INSERT INTO {table_name} ({', '.join(avro_files[table_name].columns)})
+                    VALUES ({', '.join(['%s'] * len(avro_files[table_name].columns))})
+                    ON CONFLICT DO NOTHING
+                    """
+                ))
+            )
 
-        # TablonInspecciones.csv
-        inspections = (
-            p
-            | 'Read Inspections' >> beam.io.ReadFromText(input_paths['TablonInspecciones'], skip_header_lines=1)
-            | 'Parse Inspections' >> beam.Map(lambda line: dict(zip(
-                ["inspection_date", "port", "inspector_name"],
-                csv.reader([line]).__next__()
-            )))
-            | 'Clean Inspections' >> beam.ParDo(CleanInspectionData())
-            | 'Write Inspections to PostgreSQL' >> beam.ParDo(WriteToPostgres(
-                db_config,
-                'Inspection',
-                """
-                INSERT INTO Inspection (inspection_date, port, inspector_name)
-                VALUES (%s, %s, %s)
-                ON CONFLICT DO NOTHING
-                """
-            ))
-        )
+if __name__ == '__main__':
+    # Descarga y convierte los archivos de S3
+    avro_files = download_from_s3()
 
-        # ParametrosInspeccion.csv
-        parameters = (
-            p
-            | 'Read Parameters' >> beam.io.ReadFromText(input_paths['ParametrosInspeccion'], skip_header_lines=1)
-            | 'Parse Parameters' >> beam.Map(lambda line: dict(zip(
-                ["parameter_name", "description"],
-                csv.reader([line]).__next__()
-            )))
-            | 'Clean Parameters' >> beam.ParDo(CleanParameterData())
-            | 'Write Parameters to PostgreSQL' >> beam.ParDo(WriteToPostgres(
-                db_config,
-                'Parameter',
-                """
-                INSERT INTO Parameter (parameter_name, description)
-                VALUES (%s, %s)
-                ON CONFLICT DO NOTHING
-                """
-            ))
-        )
-
-        # AtributosLotes.csv
-        lots = (
-            p
-            | 'Read Lots' >> beam.io.ReadFromText(input_paths['AtributosLotes'], skip_header_lines=1)
-            | 'Parse Lots' >> beam.Map(lambda line: dict(zip(
-                ["lot_name"],
-                csv.reader([line]).__next__()
-            )))
-            | 'Clean Lots' >> beam.ParDo(CleanLotData())
-            | 'Write Lots to PostgreSQL' >> beam.ParDo(WriteToPostgres(
-                db_config,
-                'Lot',
-                """
-                INSERT INTO Lot (lot_name)
-                VALUES (%s)
-                ON CONFLICT DO NOTHING
-                """
-            ))
-        )
-
-
-if __name__ == "__main__":
-    input_paths = {
-        'AtributosCliente': 'path/to/AtributosCliente.csv',
-        'TablonInspecciones': 'path/to/TablonInspecciones.csv',
-        'ParametrosInspeccion': 'path/to/ParametrosInspeccion.csv',
-        'AtributosLotes': 'path/to/AtributosLotes.csv'
-    }
+    # Configuración de la base de datos
     db_config = {
         'dbname': 'fruitycert',
         'user': 'fruityadmin',
@@ -150,4 +104,5 @@ if __name__ == "__main__":
         'port': 5432
     }
 
-    run_pipeline(input_paths, db_config)
+    # Ejecuta el pipeline
+    run_pipeline(avro_files, db_config)
