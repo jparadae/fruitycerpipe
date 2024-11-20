@@ -1,0 +1,11 @@
+exotifruit,AVO2,AVOCADO,0,0.1,0.2,0.3,0.4,0.5,0.6,1,0.7,0.8,0.9,0.10,0.11,0.12,0.13,1.1,1.2,1.3,1.4,1.5,0.14,0.15,0.16,0.17,0.18,0.19,0.20,0.21,0.22,0.23,0.24,Label;Variety;Grower;Package;Cat;Size
+exotifruit,AVOC,AVOCADO,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Label;Variety;Grower;Package;Cat;Size
+exotifruit,CITR,CITRUS,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Variety;Grower;Package;Label;Size;Cat
+exotifruit,LAVE,AVOCADO,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Label;Variety;Grower;Package;Cat;Size
+exotifruit,LAVE,MANGOES,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Package;Label;Variety;Grower;Size;Cat
+exotifruit,RPAC,CITRUS,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,1,0,0,0,0,0,0,0,1,0,0,0,0,Variety;Analysis1;Label
+gfproduce,AVES,AGUACATE,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Size;Cat;Package;Label;Variety;Exporter;Grower
+gfproduce,AVES,ALBARICO,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Label;Package;Grower;Variety;Size;Cat;Exporter
+gfproduce,AVES,APPLES,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Variety;Exporter;Grower;Label;Package;Size;Cat
+gfproduce,AVES,BONIATO,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Label;Variety;Size;Cat;Package;Grower;Exporter
+gfproduce,AVES,CALABACI,0,0,0,0,0,1,0,1,0,1,0,0,0,0,0,1,1,1,1,1,0,0,0,0,0,0,0,0,0,0,0,Label;Package;Size;Cat;Grower;Variety;Exporter

@@ -9,5 +9,5 @@ ENV POSTGRES_PASSWORD=securepassword
 # Se copia el script SQL de creación de tablas al contenedor
 COPY create_tables.sql /docker-entrypoint-initdb.d/
 
-# Se cambian los permisos del archivo para asegurar su ejecución
-RUN chmod 755 /docker-entrypoint-initdb.d/create_tables.sql
+# Expone el puerto predeterminado de PostgreSQL
+EXPOSE 5432

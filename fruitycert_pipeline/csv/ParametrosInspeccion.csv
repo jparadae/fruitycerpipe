@@ -1,0 +1,11 @@
+exotifruit,AVE2,BLUEBERR,4,AAAA,Pallet Nro,false,Identificacion
+exotifruit,AVE2,BLUEBERR,5,AAAA,Cajas/Pallet,false,Identificacion
+exotifruit,AVE2,BLUEBERR,6,AAAA,Peso Neto Caja,false,Identificacion
+exotifruit,AVE2,BLUEBERR,7,AAAA,Fecha Embalaje,false,Identificacion
+exotifruit,AVE2,BLUEBERR,CLABP,BQUA,Clambajopeso(auto),false,Calidad
+exotifruit,AVE2,BLUEBERR,CMBB00,BASI,Solidos Solubles,false,Basicos
+exotifruit,AVE2,BLUEBERR,CMBB01,BASI,Temperatura °F,false,Basicos
+exotifruit,AVE2,BLUEBERR,CMBB02,BQUA,Apariencia al Abrir,false,Calidad
+exotifruit,AVE2,BLUEBERR,CMBB03,BQUA,% Llenado clamshell,false,Calidad
+exotifruit,AVE2,BLUEBERR,CMBB04,BQUA,Bajo Calibre,true,Calidad
+exotifruit,AVE2,BLUEBERR,CMBB05,BQUA,Pequeño (10-12mm),false,Calidad
